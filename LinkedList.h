@@ -75,7 +75,7 @@ class LinkedList {
 
     unsigned int Remove(const T& data);
 
-    bool removeAt(int index);
+    bool RemoveAt(unsigned int index);
 
     void Clear();
 
@@ -327,9 +327,14 @@ void LinkedList<T>::AddNodesTail(const T* data, unsigned int count) {
 
 template <typename T>
 void LinkedList<T>::InsertAfter(Node* node, const T& data) {
-  Node* target = node;
 
-  target = new Node;
+  if(node == this->tail) {
+    AddTail(data);
+    return;
+  }
+
+  Node* target = new Node;
+
   target->data = data;
   target->prev = node;
   target->next =(node->next);
@@ -339,26 +344,44 @@ void LinkedList<T>::InsertAfter(Node* node, const T& data) {
 
 template <typename T>
 void LinkedList<T>::InsertBefore(Node* node, const T& data) {
-  Node* target = node;
 
-  target = new Node;
+  if(node == this->head) {
+    AddHead(data);
+    return;
+  }
+
+  Node* target = new Node;
+
   target->data = data;
   target->next = node;
-  node->prev->next = target;
   target->prev = node->prev;
+  node->prev->next = target;
   node->prev = target;
+
+  //increment the size of the list by one
+  this->size++;
 }
 
 template <typename T>
 void LinkedList<T>::InsertAt(const T& data, unsigned int index) {
   //check validity of index
-  if(index > (this->size)-1) {
+  if(index > this->size) {
     throw std::out_of_range("Error: invalid index");
   }
-
+  
+  //if attempting to add at the very end just add tail
+  if(index == this->size) {
+    AddTail(data);
+    return;
+  }
+  
   unsigned int counter = 0;
   Node* target = head;
-  while(counter != index) target = target->next;
+
+  while(counter != index) {
+    target = target->next;
+    counter++;
+  }
 
   InsertBefore(target, data);
 }
@@ -369,7 +392,7 @@ void LinkedList<T>::InsertAt(const T& data, unsigned int index) {
 template <typename T>
 bool LinkedList<T>::RemoveHead() {
   //fails if the list doesnt have a head
-  if(this->head == nullptr) return false;
+  if(this->size == 0) return false;
 
   //delete the head
   else {
@@ -379,10 +402,9 @@ bool LinkedList<T>::RemoveHead() {
     //if the list is not empty now set the previous to null
     if(this->head != nullptr) head->prev = nullptr;
     delete temp;
+    this->size--;
   }
 
-  //decrease size of the list by 1
-  size--;
   return true;
 }
 
@@ -416,42 +438,49 @@ unsigned int LinkedList<T>::Remove(const T& data) {
       //create temp node pointer and move target to the next node
       Node* temp = target;
       target = target->next;
-      temp->prev->next = target;
-      target->prev = temp->prev;
-      //remove the node and increment counter by 1
+      temp->prev->next = temp->next;
+      temp->next->prev = temp->prev;
+
+      //remove the node, increment counter by one, and decrement size by one
       delete temp;
       counter++;
+      this->size--;
+      continue;
     }
+    target = target->next;
   }
   return counter;
 }
 
 template <typename T>
-bool LinkedList<T>::removeAt(int index) {
+bool LinkedList<T>::RemoveAt(unsigned int index) {
   //first check to see if index is valid
   if(index > (this->size-1) || index < 0) {
     return false;
   }
 
   //create a target node pointer and move down the list index times
-  int counter = 0;
+  unsigned int counter = 0;
   Node* target = head;
 
   while(counter < index) {
-    head = head->next;
+    target = target->next;
     counter++;
   }
 
-  //delete the target node
+  //delete the target node and decrement size by one
   target->prev->next = target->next;
   target->next->prev = target->prev;
   delete target;
+  this->size--;
   return true;
 }
 
 template <typename T>
 void LinkedList<T>::Clear() {
   while(RemoveHead());
+  this->head = nullptr;
+  this->tail = nullptr;
   this->size = 0;
 }
 
@@ -489,13 +518,14 @@ T& LinkedList<T>::operator[](unsigned int index) {
     target = target->next;
     counter++;
   }
-  return target;
+
+  return target->data;
 }
 
 template <typename T>
 bool LinkedList<T>::operator==(const LinkedList<T>& rhs) const {
   Node* target = head;
-  Node* rhstarget = rhs.Head();
+  const Node* rhstarget = rhs.Head();
   
   //while there is another element in this list
   while(target != nullptr) {
