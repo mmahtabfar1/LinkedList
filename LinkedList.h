@@ -138,6 +138,8 @@ LinkedList<T>::LinkedList(const LinkedList<T>& list) {
 //Destructor
 template <typename T>
 LinkedList<T>::~LinkedList() {
+  //using clear will destroy all of the nodes in the list one by one
+  //thus clearing all memory allocated to the structure
   this->Clear();
 }
 
@@ -146,6 +148,8 @@ LinkedList<T>::~LinkedList() {
 //
 template <typename T>
 void LinkedList<T>::PrintForward() const {
+  //prints the value of each node starting at the head until the target node is
+  //null
   Node* target = head;
   while(target != nullptr) {
     std::cout << target->data << std::endl;
@@ -155,6 +159,7 @@ void LinkedList<T>::PrintForward() const {
 
 template <typename T>
 void LinkedList<T>::PrintReverse() const {
+  //same as above but starting at the tail and moving backwards
   Node* target = tail;
   while(target != nullptr) {
     std::cout << target->data << std::endl;
@@ -164,6 +169,8 @@ void LinkedList<T>::PrintReverse() const {
 
 template <typename T>
 void LinkedList<T>::PrintForwardRecursive(const Node* node) const {
+  //function to print value of the current node if not null and then call itsel
+  //on the next node
   if(node == nullptr) return;
   std::cout << node->data << std::endl;
   PrintForwardRecursive(node->next);
@@ -171,6 +178,7 @@ void LinkedList<T>::PrintForwardRecursive(const Node* node) const {
 
 template <typename T>
 void LinkedList<T>::PrintReverseRecursive(const Node* node) const {
+  //same as above but will call itself on the previous node
   if(node == nullptr) return;
   std::cout << node->data << std::endl;
   PrintReverseRecursive(node->prev);
@@ -181,6 +189,7 @@ void LinkedList<T>::PrintReverseRecursive(const Node* node) const {
 //
 template <typename T>
 unsigned int LinkedList<T>::NodeCount() const {
+  //returns the size of the list
   return this->size;
 }
 
@@ -200,6 +209,11 @@ void LinkedList<T>::FindAll(std::vector<Node*>& outData, const T& value) const {
 
 template <typename T>
 const typename LinkedList<T>::Node* LinkedList<T>::Find(const T& data) const {
+
+  //iterate throught the list and return a pointer to the first node with the
+  //given data
+  //if no matches are found nullptr is returned
+
   Node* target = head;
   while(target != nullptr) {
     if(target->data == data) return target;
@@ -210,6 +224,10 @@ const typename LinkedList<T>::Node* LinkedList<T>::Find(const T& data) const {
 
 template <typename T>
 typename LinkedList<T>::Node* LinkedList<T>::Find(const T& data) {
+
+  //same as above but non-const version to allow the pointer to be used to
+  //alter data in the list
+
   Node* target = head;
   while(target != nullptr) {
     if(target->data == data) return target;
@@ -220,10 +238,14 @@ typename LinkedList<T>::Node* LinkedList<T>::Find(const T& data) {
 
 template <typename T>
 const typename LinkedList<T>::Node* LinkedList<T>::GetNode(unsigned int index) const {
+
   //check validity of index
   if(index > (this->size - 1)) {
     throw std::out_of_range("Error invalid index");
   }
+
+  //move index times to the next node from the head and return the destination
+  //node
 
   int counter = 0;
   Node* target = head;
@@ -242,6 +264,9 @@ typename LinkedList<T>::Node* LinkedList<T>::GetNode(unsigned int index) {
     throw std::out_of_range("Error invalid index");
   }
 
+  //same as above except is non-const allowing the returned pointer to be used
+  //to change the list
+
   int counter = 0;
   Node* target = head;
 
@@ -251,6 +276,9 @@ typename LinkedList<T>::Node* LinkedList<T>::GetNode(unsigned int index) {
   }
   return target;
 }
+
+//const and non-const methods to access the head and tail pointers
+//respectively
 
 template <typename T>
 const typename LinkedList<T>::Node* LinkedList<T>::Head() const {
@@ -277,12 +305,19 @@ typename LinkedList<T>::Node* LinkedList<T>::Tail() {
 //
 template <typename T>
 void LinkedList<T>::AddHead(const T& data) {
+
+  //if the size of the list is 0 then there is no need for a temp or previous
+  //pointers
+  
   if(size == 0) {
     head = new Node;
     head->data = data;
     tail = head;
     size++;
   }
+
+  //add a new node at the head and change the next and previous pointers
+  //accordingly 
   else {
     Node* temp = head;
     head = new Node;
@@ -295,6 +330,9 @@ void LinkedList<T>::AddHead(const T& data) {
 
 template <typename T>
 void LinkedList<T>::AddTail(const T& data) {
+
+  //same as above but for the tail
+
   if(size == 0) {
     tail = new Node;
     tail->data = data;
@@ -313,6 +351,12 @@ void LinkedList<T>::AddTail(const T& data) {
 
 template <typename T>
 void LinkedList<T>::AddNodesHead(const T* data, unsigned int count) {
+
+  //use the previuosly defined AddHead() method to add count elements to the
+  //front of the list
+  //note: in order to preserve the original order of the elements they are
+  //added in reverse order (like a stack)
+
   for(int i=(count-1); i>=0; i--) {
     AddHead(data[i]);
   }
@@ -320,6 +364,11 @@ void LinkedList<T>::AddNodesHead(const T* data, unsigned int count) {
 
 template <typename T>
 void LinkedList<T>::AddNodesTail(const T* data, unsigned int count) {
+
+  //same as the above method but does the same for the tail
+  //note: elements are added in their given order in the array. (like adding to
+  //the end of queue.
+
   for(unsigned int i=0; i<count; i++) {
     AddTail(data[i]);
   }
@@ -328,10 +377,15 @@ void LinkedList<T>::AddNodesTail(const T* data, unsigned int count) {
 template <typename T>
 void LinkedList<T>::InsertAfter(Node* node, const T& data) {
 
+  //takes care of the edge case for the tail since tail's "next" is nullptr
+  
   if(node == this->tail) {
     AddTail(data);
     return;
   }
+
+  //creates a new node and changes the linking to make it come after the given
+  //node
 
   Node* target = new Node;
 
@@ -340,15 +394,23 @@ void LinkedList<T>::InsertAfter(Node* node, const T& data) {
   target->next =(node->next);
   node->next = target;
   target->next->prev = target;
+
+  //increment the size of the list by one
+  this->size++;
 }
 
 template <typename T>
 void LinkedList<T>::InsertBefore(Node* node, const T& data) {
 
+  //takes care of the edge case fo rthe head since head's "previous" is nullptr
+
   if(node == this->head) {
     AddHead(data);
     return;
   }
+
+  //creates a new node and changes the linking to make it come before the given
+  //node
 
   Node* target = new Node;
 
@@ -374,6 +436,8 @@ void LinkedList<T>::InsertAt(const T& data, unsigned int index) {
     AddTail(data);
     return;
   }
+
+  //move down the list index times
   
   unsigned int counter = 0;
   Node* target = head;
@@ -382,6 +446,8 @@ void LinkedList<T>::InsertAt(const T& data, unsigned int index) {
     target = target->next;
     counter++;
   }
+
+  //use InserBefore() to insert the index at the correct position in the list
 
   InsertBefore(target, data);
 }
@@ -478,6 +544,10 @@ bool LinkedList<T>::RemoveAt(unsigned int index) {
 
 template <typename T>
 void LinkedList<T>::Clear() {
+
+  //keep removing the head node until you can't anymore
+  //then set all instance variables to that of a newly created list
+  
   while(RemoveHead());
   this->head = nullptr;
   this->tail = nullptr;
@@ -494,14 +564,10 @@ const T& LinkedList<T>::operator[](unsigned int index) const {
     throw std::out_of_range("Error: Invalid index");
   }
 
-  unsigned int counter = 0;
-  Node* target = head;
+  //use previously declared GetNode method to access element at the given index
+  //and return the value of the element
+  return (this->GetNode(index))->data;
 
-  while(counter < index) {
-    target = target->next;
-    counter++;
-  }
-  return target;
 }
 
 template <typename T>
@@ -511,15 +577,10 @@ T& LinkedList<T>::operator[](unsigned int index) {
     throw std::out_of_range("Error: Invalid index");
   }
 
-  unsigned int counter = 0;
-  Node* target = head;
+  //use previously declared GetNode method ot access element at the given index
+  //and return the value of the element
+  return (this->GetNode(index))->data;
 
-  while(counter < index) {
-    target = target->next;
-    counter++;
-  }
-
-  return target->data;
 }
 
 template <typename T>
